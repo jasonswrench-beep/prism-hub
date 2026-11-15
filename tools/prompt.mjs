@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Asking in the console: a yes or no, and a password that is not shown as it is typed.
+// Asking in the console: a yes or no, and a password shown only as stars while it is typed.
 import { createInterface } from "node:readline";
 
 export function ask(question) {
@@ -24,6 +24,8 @@ export function askSecret(question) {
     const onData = (chunk) => {
       for (const ch of chunk) {
         if (ch === "\r" || ch === "\n") {
+          // An Enter left over from starting the command (or pressed before typing) is not a password: keep waiting.
+          if (typed.length === 0) continue;
           input.setRawMode(false);
           input.pause();
           input.off("data", onData);
@@ -35,8 +37,16 @@ export function askSecret(question) {
           process.stdout.write("\n");
           return fail(new Error("Stopped."));
         }
-        if (ch === "\u0008" || ch === "\u007f") typed = typed.slice(0, -1);
-        else typed += ch;
+        // Each character shows as a star, so you can see that typing is landing and how much, without the password showing.
+        if (ch === "\u0008" || ch === "\u007f") {
+          if (typed.length > 0) {
+            typed = typed.slice(0, -1);
+            process.stdout.write("\b \b");
+          }
+        } else if (ch >= " ") {
+          typed += ch;
+          process.stdout.write("*");
+        }
       }
     };
     input.on("data", onData);

@@ -215,13 +215,14 @@ async function main(argv) {
   if (!existsSync(file)) stop(`the hub key's private half is not at ${file}. Set HUB_KEY to where it is.`);
   const pem = readFileSync(file, "utf8");
   const password = await askSecret("The hub key's password: ");
+  if (!password) stop("no password was typed. Nothing was signed.");
   let signature;
   try {
     if (publicOf(pem, password) !== brand.catalogPublicKey) stop("this key is not the one built into the hub (brand/brand.json). Nothing was signed.");
     signature = signBytes(bytes, pem, password) + "\n";
   } catch (e) {
     if (e instanceof Stop) throw e;
-    stop("the password did not open the hub key. Nothing was signed.");
+    stop(`the password did not open the hub key (${password.length} characters were typed). Nothing was signed. To try the password on its own: node tools\\make-hub-key.mjs --check`);
   }
   if (!checkSignature(bytes, signature, brand.catalogPublicKey)) stop("the new signature did not check out. Nothing was uploaded.");
   const catalogFile = join(out, brand.catalog.file);

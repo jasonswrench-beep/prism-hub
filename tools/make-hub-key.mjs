@@ -18,10 +18,30 @@ export const keyFile = () => {
   return process.env.HUB_KEY || join(homedir(), `${b.productName} key`, `${b.programName}-catalog-key.pem`);
 };
 
+/** --check: asks for the password and says whether it opens the key and whether that key is the one in brand.json. Changes nothing. */
+async function check(file, brand) {
+  if (!existsSync(file)) {
+    console.log(`There is no hub key at ${file}.`);
+    process.exitCode = 1;
+    return;
+  }
+  const password = await askSecret("The hub key's password: ");
+  try {
+    const pub = publicOf(readFileSync(file, "utf8"), password);
+    console.log(pub === brand.catalogPublicKey
+      ? "The password opens the hub key, and it is the key built into the hub."
+      : "The password opens the key, but it is NOT the key in brand/brand.json.");
+  } catch {
+    console.log(`That password (${password.length} characters) does not open the hub key.`);
+    process.exitCode = 1;
+  }
+}
+
 async function main() {
   const file = keyFile();
   const brandFile = join(root, "brand", "brand.json");
   const brand = JSON.parse(readFileSync(brandFile, "utf8"));
+  if (process.argv.includes("--check")) return check(file, brand);
   if (existsSync(file)) {
     console.log(`A hub key is already at:\n  ${file}\nNothing was changed. (A new key would stop every installed hub from trusting the catalog.)`);
     return;
@@ -33,7 +53,7 @@ async function main() {
     process.exitCode = 1;
     return;
   }
-  console.log("Choose a password for the hub key. You will need it each time the catalog is updated. It is not shown as you type.");
+  console.log("Choose a password for the hub key. You will need it each time the catalog is updated. Each character shows as a star.");
   const one = await askSecret("Password: ");
   if (one.length < 10) {
     console.log("Please use at least 10 characters. Nothing was made.");
