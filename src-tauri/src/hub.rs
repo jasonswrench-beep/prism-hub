@@ -193,6 +193,8 @@ pub struct AppView {
     pub name: String,
     pub letters: String,
     pub color: String,
+    /// The app's own icon (a data: address from the signed catalog), shown in place of the round mark when there is one.
+    pub icon: Option<String>,
     pub description: String,
     pub installed: Option<InstalledView>,
     pub offer: Option<OfferView>,
@@ -268,6 +270,7 @@ pub fn app_view(app: &App, installed: &[Installed], saved: &Saved, previews_allo
         name: app.name.clone(),
         letters: app.mark.letters.clone(),
         color: app.mark.color.clone(),
+        icon: app.mark.icon.clone(),
         description: app.description.clone(),
         installed: installed_view,
         offer: offer.map(|o| OfferView { version: o.version.clone(), preview: version::is_preview(&o.version), size: o.size }),

@@ -21,7 +21,7 @@ import { dirname, join, resolve } from "node:path";
 import { pipeline } from "node:stream/promises";
 import { Readable } from "node:stream";
 import { fileURLToPath } from "node:url";
-import { appEntry, changes, checkSignature, downloadUrl, findAsset, pickReleases, publicOf, releaseEntry, signBytes, stamp, table } from "./catalog-lib.mjs";
+import { appEntry, changes, checkSignature, downloadUrl, findAsset, markOf, pickReleases, publicOf, releaseEntry, signBytes, stamp, table } from "./catalog-lib.mjs";
 import { keyFile } from "./make-hub-key.mjs";
 import { askSecret } from "./prompt.mjs";
 
@@ -107,9 +107,12 @@ async function checked(asset, url, expectedSigner, what, memory) {
   }
 }
 
+/** An app's mark with its icon file (if catalog/apps.json names one) read into it. */
+const markFor = (mark) => markOf(mark, (path) => readFileSync(join(root, path)));
+
 async function buildCatalog(memory) {
   const apps = [];
-  const comingSoon = [...sources.comingSoon];
+  const comingSoon = sources.comingSoon.map((c) => (c.mark ? { ...c, mark: markFor(c.mark) } : c));
   for (const source of sources.apps) {
     say(`${source.name} (${source.repository})`);
     const ignored = new Set(source.ignoreTags ?? []);
@@ -119,7 +122,7 @@ async function buildCatalog(memory) {
       const visibility = gh(["repo", "view", source.repository, "--json", "visibility"]).visibility;
       if ((!stable && !preview) || visibility !== "PUBLIC") {
         say(`  Coming soon (${visibility !== "PUBLIC" ? `its repository is ${visibility.toLowerCase()}` : "no published release yet"})`);
-        comingSoon.push({ id: source.id, name: source.name, description: source.description ?? "", mark: source.mark });
+        comingSoon.push({ id: source.id, name: source.name, description: source.description ?? "", mark: markFor(source.mark) });
         continue;
       }
     }
@@ -149,7 +152,7 @@ async function buildCatalog(memory) {
       extras.push({ name: x.name, description: x.description ?? "", fileName: asset.name, url: downloadUrl(source.repository, release.tag_name, asset.name), sha256: sha256(file), size: asset.size });
       rmSync(file, { force: true });
     }
-    apps.push(appEntry(source, stableEntry, previewEntry, extras));
+    apps.push(appEntry({ ...source, mark: markFor(source.mark) }, stableEntry, previewEntry, extras));
   }
 
   // The hub's own newest release (its catalog release is not a version, so it never counts).

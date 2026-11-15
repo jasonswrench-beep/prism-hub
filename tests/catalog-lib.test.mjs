@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { readFileSync } from "node:fs";
 import {
-  appEntry, baseVersion, changes, checkSignature, compareVersions, downloadUrl, findAsset, makeKey, pickReleases, publicOf, releaseEntry, signBytes, stamp,
+  appEntry, baseVersion, changes, checkSignature, compareVersions, downloadUrl, findAsset, makeKey, markOf, MOST_ICON_BYTES, pickReleases, publicOf, releaseEntry, signBytes, stamp,
 } from "../tools/catalog-lib.mjs";
 
 const rel = (tag, draft = false, assets = []) => ({ tag_name: tag, draft, assets });
@@ -83,4 +83,20 @@ test("a catalog signed with the hub key checks out, and one changed byte does no
   const changed = Buffer.from(bytes);
   changed[2] ^= 1;
   assert.ok(!checkSignature(changed, sig, publicB64));
+});
+
+test("an app's icon file goes into the catalog as a picture, and only a small plain picture", () => {
+  const sources = JSON.parse(readFileSync(new URL("../catalog/apps.json", import.meta.url), "utf8"));
+  const fromRepo = (path) => readFileSync(new URL(`../${path}`, import.meta.url));
+  for (const app of sources.apps) {
+    const m = markOf(app.mark, fromRepo);
+    assert.equal(m.letters, app.mark.letters);
+    if (app.mark.icon) assert.match(m.icon, /^data:image\/svg\+xml;base64,/, `${app.id}: its icon is carried in the catalog`);
+  }
+  assert.deepEqual(markOf({ letters: "ab", color: "#123456" }, fromRepo), { letters: "ab", color: "#123456" }, "no icon: letters and colour only");
+  const svg = (text) => () => Buffer.from(text);
+  assert.throws(() => markOf({ letters: "ab", color: "#123456", icon: "x.svg" }, svg('<svg><script>alert(1)</script></svg>')), /script/);
+  assert.throws(() => markOf({ letters: "ab", color: "#123456", icon: "x.svg" }, svg('<svg onload="alert(1)"></svg>')), /script/);
+  assert.throws(() => markOf({ letters: "ab", color: "#123456", icon: "x.gif" }, svg("GIF89a")), /not an .svg or .png/);
+  assert.throws(() => markOf({ letters: "ab", color: "#123456", icon: "x.png" }, () => Buffer.alloc(MOST_ICON_BYTES + 1)), /bytes/);
 });

@@ -24,7 +24,7 @@ import { fileURLToPath } from "node:url";
 import { applyBrand } from "./apply-brand.mjs";
 
 /** The release this build is. Raise it for every release; the hub compares it with the catalog's hub entry. Tags are v<RELEASE>. */
-export const RELEASE = "1.0.0";
+export const RELEASE = "1.0.1";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const tauriDir = join(root, "src-tauri");

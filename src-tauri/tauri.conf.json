@@ -2,7 +2,7 @@
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Prism Hub",
   "mainBinaryName": "prism-hub",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "identifier": "org.prismopenresearch.hub",
   "build": {
     "beforeDevCommand": "npm run dev",

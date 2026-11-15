@@ -12,6 +12,8 @@ use serde::{Deserialize, Serialize};
 pub const FORMAT: u32 = 1;
 /// The most a catalog may be. Today's is a few kilobytes.
 pub const MOST_BYTES: usize = 512 * 1024;
+/// The most one app's icon may be, once decoded. The suite's icons are a few kilobytes of SVG.
+pub const MOST_ICON_BYTES: usize = 32 * 1024;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -70,6 +72,19 @@ fn default_uninstall_switch() -> Vec<String> {
 pub struct Mark {
     pub letters: String,
     pub color: String,
+    /// The app's own icon, as a data: address of an SVG or PNG picture carried inside the signed catalog (so it needs no download and works
+    /// offline). The window shows it in place of the round mark; without one, the letters and colour are shown.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub icon: Option<String>,
+}
+
+/// An icon is a data: address of an SVG or PNG picture, in base64, no larger than MOST_ICON_BYTES. The window shows it as an image, which can
+/// run no script and load nothing from the network.
+pub fn icon_ok(icon: &str) -> bool {
+    let data = icon.strip_prefix("data:image/svg+xml;base64,").or_else(|| icon.strip_prefix("data:image/png;base64,"));
+    let Some(data) = data else { return false };
+    data.len() <= MOST_ICON_BYTES * 4 / 3 + 4
+        && base64::engine::general_purpose::STANDARD.decode(data).is_ok_and(|bytes| !bytes.is_empty() && bytes.len() <= MOST_ICON_BYTES)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -182,6 +197,9 @@ pub fn validate(c: &Catalog) -> Result<(), String> {
         if !(1..=2).contains(&app.mark.letters.chars().count()) || !app.mark.letters.chars().all(|ch| ch.is_alphanumeric()) || !hex_color(&app.mark.color) {
             return bad(what("its mark"));
         }
+        if app.mark.icon.as_deref().is_some_and(|i| !icon_ok(i)) {
+            return bad(what("its icon"));
+        }
         if let Some(min) = &app.minimum_hub_version {
             if version::key(min).is_none() {
                 return bad(what("its minimum hub version"));
@@ -200,7 +218,7 @@ pub fn validate(c: &Catalog) -> Result<(), String> {
         }
     }
     for s in &c.coming_soon {
-        if !plain_id(&s.id) || s.mark.as_ref().is_some_and(|m| !hex_color(&m.color) || m.letters.chars().count() > 2) {
+        if !plain_id(&s.id) || s.mark.as_ref().is_some_and(|m| !hex_color(&m.color) || m.letters.chars().count() > 2 || m.icon.as_deref().is_some_and(|i| !icon_ok(i))) {
             return bad(format!("coming soon {:?}", s.id));
         }
     }
@@ -311,7 +329,7 @@ pub mod tests {
         App {
             id: id.into(),
             name: format!("App {id}"),
-            mark: Mark { letters: "ab".into(), color: "#6B5BD2".into() },
+            mark: Mark { letters: "ab".into(), color: "#6B5BD2".into(), icon: None },
             description: String::new(),
             repository: repo.clone(),
             installed_as: format!("App {id}"),
@@ -368,7 +386,15 @@ pub mod tests {
         assert!(spoil(&|a| a.quiet_switch = vec![]));
         assert!(spoil(&|a| a.id = "Bad Id".into()));
         assert!(spoil(&|a| a.mark.color = "red".into()));
+        assert!(spoil(&|a| a.mark.icon = Some("https://example.org/icon.svg".into())), "an icon is carried in the catalog, never fetched");
+        assert!(spoil(&|a| a.mark.icon = Some("data:text/html;base64,PGgxPmhpPC9oMT4=".into())), "only SVG or PNG pictures");
+        assert!(spoil(&|a| a.mark.icon = Some("data:image/svg+xml;base64,not base64!".into())));
+        assert!(spoil(&|a| a.mark.icon = Some(format!("data:image/png;base64,{}", base64::engine::general_purpose::STANDARD.encode(vec![0u8; MOST_ICON_BYTES + 1])))));
         assert!(spoil(&|a| a.repository = "a/b/c".into()));
+        let mut with_icon = good.clone();
+        let svg = br#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4"/></svg>"#;
+        with_icon.apps[0].mark.icon = Some(format!("data:image/svg+xml;base64,{}", base64::engine::general_purpose::STANDARD.encode(svg)));
+        assert!(validate(&with_icon).is_ok(), "a small SVG icon is accepted");
         let mut twice = good.clone();
         twice.apps.push(twice.apps[0].clone());
         assert!(validate(&twice).is_err(), "two apps with one id");

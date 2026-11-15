@@ -9,7 +9,7 @@
     {
       "id": "prismqda",
       "name": "PrismQDA",
-      "mark": { "letters": "qd", "color": "#5B45E0" },
+      "mark": { "letters": "qd", "color": "#5B45E0", "icon": "catalog/icons/prismqda.svg" },
       "description": "Qualitative and mixed-methods analysis",
       "repository": "jasonswrench-beep/prismqda",
       "installedAs": "PrismQDA",
@@ -24,7 +24,7 @@
     {
       "id": "prismstatistics",
       "name": "PrismStatistics",
-      "mark": { "letters": "st", "color": "#2F64D6" },
+      "mark": { "letters": "st", "color": "#2F64D6", "icon": "catalog/icons/prismstatistics.svg" },
       "description": "Statistics for research and teaching",
       "repository": "jasonswrench-beep/prism_statistics",
       "installedAs": "PrismStatistics",
@@ -36,7 +36,7 @@
     {
       "id": "prism-reference-manager",
       "name": "Prism Reference Manager",
-      "mark": { "letters": "rm", "color": "#4B5FA8" },
+      "mark": { "letters": "rm", "color": "#4B5FA8", "icon": "catalog/icons/prism-reference-manager.svg" },
       "description": "Collect, read and cite sources",
       "repository": "jasonswrench-beep/prism_reference_manager",
       "installedAs": "Prism Reference Manager",

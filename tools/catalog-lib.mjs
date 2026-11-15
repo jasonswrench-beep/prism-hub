@@ -61,6 +61,24 @@ export function releaseEntry(repository, release, asset, sha256, windowsVersion)
   };
 }
 
+/** The most one app's icon may be (the hub refuses larger: src-tauri/src/catalog.rs, MOST_ICON_BYTES). */
+export const MOST_ICON_BYTES = 32 * 1024;
+
+/**
+ * An app's mark for the catalog. When catalog/apps.json names an icon file (mark.icon, an .svg or .png in this repository), the picture is put
+ * into the signed catalog as a data: address, so the hub never downloads it separately and has it offline. readFile(path) returns its bytes.
+ */
+export function markOf(mark, readFile) {
+  const out = { letters: mark.letters, color: mark.color };
+  if (!mark.icon) return out;
+  const kind = /\.svg$/i.test(mark.icon) ? "image/svg+xml" : /\.png$/i.test(mark.icon) ? "image/png" : null;
+  if (!kind) throw new Error(`the icon ${mark.icon} is not an .svg or .png file`);
+  const bytes = readFile(mark.icon);
+  if (bytes.length === 0 || bytes.length > MOST_ICON_BYTES) throw new Error(`the icon ${mark.icon} is ${bytes.length} bytes; it must be between 1 and ${MOST_ICON_BYTES}`);
+  if (kind === "image/svg+xml" && /<script|<foreignObject|\son[a-z]+\s*=/i.test(bytes.toString("utf8"))) throw new Error(`the icon ${mark.icon} holds a script; use a plain picture`);
+  return { ...out, icon: `data:${kind};base64,${bytes.toString("base64")}` };
+}
+
 /** "2026-11-15T18:04:00Z": the date format the hub reads (twenty characters, no fractions of a second). */
 export function stamp(date = new Date()) {
   return date.toISOString().replace(/\.\d{3}Z$/, "Z");

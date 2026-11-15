@@ -2,6 +2,12 @@
 // A stand-in for the Rust side, so the real window code (src/main.ts) runs in a browser for looking and accessibility testing.
 // It answers the same commands with made-up but realistic data, and pretends to download and install. It touches nothing on the computer.
 import type { AppView, JobEvent, View } from "../src/types";
+// The real icons, made into data: addresses the way the catalog script makes them (base64 SVG).
+import qdaSvg from "../catalog/icons/prismqda.svg?raw";
+import statsSvg from "../catalog/icons/prismstatistics.svg?raw";
+import rmSvg from "../catalog/icons/prism-reference-manager.svg?raw";
+const asIcon = (svg: string) => `data:image/svg+xml;base64,${btoa(String.fromCharCode(...new TextEncoder().encode(svg)))}`;
+const [qdaIcon, statsIcon, rmIcon] = [qdaSvg, statsSvg, rmSvg].map(asIcon);
 
 const callbacks = new Map<number, (data: unknown) => void>();
 const listeners = new Map<string, number[]>();
@@ -28,13 +34,16 @@ const view: View = {
   justUpdated: null,
   apps: [
     app("prismqda", "PrismQDA", "qd", "#5B45E0", "Qualitative and mixed-methods analysis", {
+      icon: qdaIcon,
       installed: { version: "0.1.0-beta.1", exact: true, folderKnown: true }, offer: { version: "0.2.0-beta.1", preview: true, size: 10610168 }, update: true, running: true,
       extras: [{ index: 0, name: "Portable copy", description: "Runs without installing", size: 11576446 }],
     }),
     app("prismstatistics", "PrismStatistics", "st", "#2F64D6", "Statistics for research and teaching", {
+      icon: statsIcon,
       installed: { version: "0.1.1", exact: false, folderKnown: true }, offer: { version: "0.1.0", preview: false, size: 20386856 },
     }),
     app("prism-reference-manager", "Prism Reference Manager", "rm", "#4B5FA8", "Collect, read and cite sources", {
+      icon: rmIcon,
       offer: { version: "0.1.2", preview: false, size: 8713432 },
       extras: [
         { index: 0, name: "Portable copy", description: "Runs without installing", size: 11042988 },

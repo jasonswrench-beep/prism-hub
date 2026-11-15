@@ -231,6 +231,13 @@ h2 {
   text-transform: lowercase;
 }
 
+/* An app's own icon in place of the round mark: the picture as drawn, no circle behind it. */
+.mark.icon {
+  background: none;
+  border-radius: 0;
+  object-fit: contain;
+}
+
 .mark.web {
   background: var(--surface);
   color: var(--text);
