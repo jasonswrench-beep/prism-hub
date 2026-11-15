@@ -1,66 +1,39 @@
+<p align="center"><img src="brand/PrismOpenResearch.svg" width="96" alt="The PrismOpenResearch icon: a rainbow prism with an open centre and a separated gold corner"></p>
+
 # Prism Hub
 
-Prism Hub is a small Windows program that lists every app in the PrismOpenResearch suite and
-installs, updates and opens each one from its signed GitHub release. It needs no account, stays
-out of the way by default, and never installs a file that fails its checksum and signature check.
+One small Windows program that lists every app in the PrismOpenResearch suite and installs, updates and opens each one from its signed GitHub release.
 
-- **Desktop**: one row per app, with one button that fits the app's state (Install, Open,
-  Update, Cancel or Retry) and a menu for everything else (What's new, Open install folder,
-  Reinstall, Uninstall, Other downloads).
-- **Web**: links that open in your own browser.
-- **Coming soon**: apps that are on the way.
+- **No account.** Nothing to sign in to, and nothing about you or your computer is ever sent anywhere.
+- **Stays out of the way.** It does not start with Windows unless you ask it to, and it never installs anything without your click.
+- **Never installs anything unchecked.** Every installer must match its SHA-256 in the signed catalog and carry a valid, timestamped code signature from Jason Wrench, checked by Windows itself. Anything else is deleted before it runs.
+- **Per user.** The hub and every Prism app install for one person, with no administrator rights.
 
-It is a per-user program: installing it, and every app it installs, needs no administrator.
+Apache 2.0.
 
-## How it decides what to offer
+## Using it
 
-The hub reads one signed file, the Prism catalog (`prism-catalog.json` on the `catalog`
-release of this repository), instead of asking GitHub about each app. Every installer it
-downloads must match the SHA-256 in the catalog and carry a valid, timestamped Windows code
-signature from the expected signer. A file that fails either check is deleted and nothing is
-installed. See [docs/catalog.md](docs/catalog.md).
+Download `Prism-Hub-<version>-Setup.exe` from [Releases](https://github.com/jasonswrench-beep/prism-hub/releases) and run it. The first copy is installed by hand; after that the hub updates itself.
 
-Installed apps are found the way Windows lists them (Settings › Apps), so apps installed before
-the hub existed show as installed. The apps keep their own update buttons; both routes use the
-same signed installers.
+Each app has one button: **Install**, **Open**, **Update**, **Cancel** while it works, or **Retry** with a plain sentence about what went wrong. The three-dot menu beside it holds Open, What's new, Open install folder, Reinstall, Uninstall, and Other downloads when an app has them. Apps you installed before the hub show as installed straight away.
 
-## Privacy
+Offline, the hub still lists every app from the last catalog it fetched, and Open still works.
 
-A check for updates downloads the catalog and nothing else. No usage data, no list of installed
-apps and no identifier leaves the computer. The hub never opens an app's projects or library and
-never changes an app's settings.
+Settings: Offer preview versions, Start with Windows, Keep running in the tray, Check once a day while in the tray, and About.
 
-## Start with Windows and the tray
+## For college IT staff
 
-Off by default; the hub asks once on first run, with "Not now" first. When it is on, the hub
-starts in the tray at sign-in with no window, checks the catalog once a day, and shows one
-Windows notification per new version. Settings › "Keep running in the tray when I close the
-window" can be changed on its own.
+A `policy.json` file beside `prism-hub.exe` can turn off update checks, turn off Start with Windows, hide apps or turn off previews. See [docs/policy.md](docs/policy.md).
 
-## For IT staff
+## How it works
 
-A `policy.json` beside `prism-hub.exe`, in `%ProgramData%\Prism Hub\` (administrator-owned), or
-Group Policy values under `Software\Policies\Prism Hub` can turn off update checks,
-start-with-Windows and previews, or hide apps. See [docs/policy.md](docs/policy.md).
+- [docs/how-it-works.md](docs/how-it-works.md): the catalog, the six install steps, what is kept on disk, and what is sent over the network.
+- [docs/catalog.md](docs/catalog.md): the catalog's format and how to update it (`Update Prism Catalog.bat`).
+- [docs/releasing.md](docs/releasing.md): making the hub key, building and signing the hub, and publishing a release.
+- [TESTING-TODO.md](TESTING-TODO.md): the checks only a person can do.
 
 ## Building
 
-Needs Rust, Node.js, Python 3, the GitHub command line (`gh`), and for signed builds the
-signing setup the other apps use (the `OPENSTAGE_SIGN_*` variables and `az login`).
+Double-click `Run Prism Hub.bat` to run a development copy, or `Build Prism Hub.bat` to make an installer. Both need Node.js and Rust.
 
-| Double-click | What it does |
-| --- | --- |
-| `Make Hub Key.bat` | Once: makes the catalog key (you choose the password) and puts its public half in `brand/brand.json`. |
-| `Build Prism Hub.bat` | Tests, notices, and the signed installer in `dist\` with its SHA-256 file. Publishes nothing. |
-| `Update Prism Catalog.bat` | After any app release: reads the releases, checks every setup file, writes, signs and (after asking) uploads the catalog. |
-
-For development: `npm install`, then `npm run dev`. `npm test` runs the Rust tests.
-`python tools/ui-preview/serve.py` shows the window in a browser with made-up data.
-
-Every brand value (name, identifier, Start menu folder, icon, accent color, catalog address,
-catalog key) lives in [brand/brand.json](brand/brand.json); `npm run brand` writes it into the
-Tauri configuration, the installer hooks and the icons.
-
-## Licence
-
-Apache License 2.0. See [LICENSE](LICENSE), [NOTICE](NOTICE) and [THIRD-PARTY.md](THIRD-PARTY.md).
+Every brand-specific value (name, identifier, Start menu folder, icon, accent colours, catalog address, the catalog's public key) is in [brand/brand.json](brand/brand.json), so Prism Hub can share this code with its own brand file.

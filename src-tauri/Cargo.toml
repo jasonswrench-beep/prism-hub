@@ -1,15 +1,13 @@
 [package]
 name = "prism-hub"
-description = "Prism Hub: installs, updates and opens the PrismOpenResearch apps"
 version = "1.0.0"
 edition = "2021"
 license = "Apache-2.0"
-authors = ["Jason S. Wrench"]
-rust-version = "1.80"
+description = "Lists the PrismOpenResearch apps and installs, updates and opens each one from its signed GitHub release"
 
 [lib]
 name = "hub"
-crate-type = ["rlib"]
+path = "src/lib.rs"
 
 [[bin]]
 name = "prism-hub"
@@ -19,40 +17,41 @@ path = "src/main.rs"
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
+# The window, the tray icon and its two pictures (with and without the "update ready" dot).
 tauri = { version = "2", features = ["tray-icon", "image-png"] }
+# A second start (from the Start menu while the hub sits in the tray) shows the window of the first instead of a second hub.
 tauri-plugin-single-instance = "2"
+# The one Windows notification per new version.
 tauri-plugin-notification = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-ureq = { version = "2", default-features = false, features = ["native-tls"] }
-native-tls = "0.2"
-url = "2"
+# The SHA-256 of every downloaded installer, checked against the catalog.
 sha2 = "0.10"
-hex = "0.4"
-semver = "1"
-minisign-verify = "0.3"
+# The catalog's signature (Ed25519), checked with the public half of the hub key built into brand/brand.json.
+ed25519-dalek = { version = "2", default-features = false, features = ["std"] }
 base64 = "0.22"
 
+# Windows' own code for everything that touches the system: HTTPS (WinHTTP), the code-signature check (WinVerifyTrust), the per-user installed
+# apps list and start-up entry (the registry), finding running programs, and opening a page or a folder.
 [target.'cfg(windows)'.dependencies]
-winreg = "0.56"
 windows = { version = "0.62", features = [
   "Win32_Foundation",
+  "Win32_Networking_WinHttp",
   "Win32_Security",
-  "Win32_Security_Authorization",
   "Win32_Security_Cryptography",
   "Win32_Security_Cryptography_Catalog",
   "Win32_Security_Cryptography_Sip",
   "Win32_Security_WinTrust",
   "Win32_System_Diagnostics_ToolHelp",
+  "Win32_System_Registry",
   "Win32_System_Threading",
-  "Win32_System_Com",
   "Win32_UI_Shell",
   "Win32_UI_WindowsAndMessaging",
 ] }
 
 [profile.release]
+lto = "thin"
 codegen-units = 1
-lto = true
 opt-level = "s"
 strip = true
 panic = "abort"

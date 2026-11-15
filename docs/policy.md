@@ -1,43 +1,23 @@
-# Policy for IT staff
+# The policy file, for college IT staff
 
-Prism Hub reads policy from any of these places. Policy can only switch things off or hide
-apps; a value that would switch something on is ignored, so a planted file can at most hide or
-disable things.
-
-1. `policy.json` beside `prism-hub.exe` (the hub's install folder, by default
-   `%LOCALAPPDATA%\Prism Hub\`). This is where a deployment tool that installs the hub per user
-   puts it.
-2. `%ProgramData%\Prism Hub\policy.json`, for the whole computer. It counts only when the folder
-   and the file are owned by Administrators, SYSTEM or TrustedInstaller and no other account can
-   change them (anyone may create folders in ProgramData).
-3. Group Policy registry values under `HKLM\Software\Policies\Prism Hub` or
-   `HKCU\Software\Policies\Prism Hub`.
-
-## policy.json
+Place a file named `policy.json` beside the hub's program file (by default `%LOCALAPPDATA%\Prism Hub\prism-hub.exe`, so `%LOCALAPPDATA%\Prism Hub\policy.json`). The hub reads it each time it starts. Anything it does not set is left to the person.
 
 ```json
 {
-  "update_checks": false,
-  "start_with_windows": false,
-  "offer_previews": false,
-  "hide_apps": ["prismstatistics"]
+  "updateChecks": false,
+  "startWithWindows": false,
+  "hideApps": ["prismstatistics"],
+  "previews": false
 }
 ```
 
-| Key | Effect |
+| Setting | Effect |
 | --- | --- |
-| `update_checks: false` | The hub never downloads the catalog. It lists apps from the last catalog it has (or the one inside its installer) and the status line says checks are turned off. Installing from that catalog still works when a person presses Install. |
-| `start_with_windows: false` | The start-with-Windows setting is locked off, its start-up entry is removed, and the first-run question is not asked. |
-| `offer_previews: false` | Only stable releases are offered. Apps with only a preview show no Install button. |
-| `hide_apps` | Catalog ids of apps not to show (see the catalog for ids: `prismqda`, `prismstatistics`, `prism-reference-manager`). |
+| `"updateChecks": false` | The hub never fetches the catalog. It lists the apps from the last catalog it fetched (if any), and Open works; Install and Update are greyed out. |
+| `"startWithWindows": false` | Start with Windows is off and cannot be turned on. (An existing start-up entry is not removed by the policy; remove it with the setting, or delete the `Prism Hub` value under `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`.) |
+| `"hideApps": [ids]` | Those apps are not listed. The ids are in `catalog/apps.json`: `prismqda`, `prismstatistics`, `prism-reference-manager`. |
+| `"previews": false` | Only stable releases are offered. An app that has only preview releases cannot be installed from the hub. |
 
-## Group Policy values
+Settings the policy has turned off are shown greyed out in the hub's Settings, with a line saying whoever looks after the computer set this.
 
-| Value | Type | Effect |
-| --- | --- | --- |
-| `UpdateChecks` | DWORD 0 | As `update_checks: false`. |
-| `StartWithWindows` | DWORD 0 | As `start_with_windows: false`. |
-| `OfferPreviews` | DWORD 0 | As `offer_previews: false`. |
-| `HideApps` | REG_MULTI_SZ, or REG_SZ separated by commas | As `hide_apps`. |
-
-Settings › About lists where the active policy came from.
+A file that cannot be read as JSON is ignored, as if it were not there.

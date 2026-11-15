@@ -1,234 +1,126 @@
-//! Prism Hub: lists the suite's apps from the signed catalog and installs, updates and opens them.
+// SPDX-License-Identifier: Apache-2.0
+//! The hub (OpenStage Hub or Prism Hub, by brand/brand.json): lists every app in the suite and installs, updates and opens each one from its signed GitHub release.
 
-pub mod authenticode;
 pub mod brand;
 pub mod catalog;
-mod commands;
+pub mod hub;
 pub mod jobs;
 pub mod net;
-pub mod settings;
-mod tray;
+pub mod state;
+pub mod system;
 pub mod trust;
-pub mod util;
-pub mod view;
-pub mod winsys;
+pub mod version;
 
-use brand::BRAND;
-use catalog::{Catalog, Envelope, Read};
-use std::collections::HashMap;
-use std::sync::Mutex;
-use tauri::{AppHandle, Emitter, Manager, RunEvent, WebviewUrl, WebviewWindowBuilder};
+mod commands;
+mod tray;
 
-pub use jobs::Job;
+use hub::Hub;
+use std::sync::Arc;
+use tauri::{Manager, RunEvent, WebviewUrl, WebviewWindowBuilder};
 
-/// Everything the hub knows. Held briefly: no network or disk work happens under the lock.
-pub struct Inner {
-    pub catalog: Option<Catalog>,
-    /// A genuine catalog that needs a newer hub than this one (its hub entry is still usable).
-    pub newer_hub_needed: Option<Envelope>,
-    pub settings: settings::Settings,
-    pub policy: settings::Policy,
-    pub offline: bool,
-    pub checking: bool,
-    pub check_error: Option<String>,
-    pub jobs: HashMap<String, Job>,
-    pub problems: HashMap<String, String>,
-    /// The tray icon is showing (start-up in the tray, or "keep running in the tray").
-    pub tray: bool,
-    pub window_open: bool,
-}
+pub const WINDOW: &str = "main";
 
-pub struct Hub(pub Mutex<Inner>);
-
-impl Hub {
-    pub fn lock(&self) -> std::sync::MutexGuard<'_, Inner> {
-        self.0.lock().unwrap_or_else(|e| e.into_inner())
-    }
-}
-
-pub fn hub(app: &AppHandle) -> tauri::State<'_, Hub> {
-    app.state::<Hub>()
-}
-
-/// The UI re-reads the view whenever this fires.
-pub fn changed(app: &AppHandle) {
-    let _ = app.emit("hub://changed", ());
-    tray::refresh(app);
-}
-
-fn load() -> Inner {
-    let mut s = settings::load();
-    let policy = settings::load_policy();
-    if policy.no_start_with_windows && s.start_with_windows {
-        s.start_with_windows = false;
-        let _ = winsys::set_start_with_windows(false);
-    }
-    let (catalog, newer) = match catalog::load_cached() {
-        Some((Read::Usable(c), _)) => (Some(c), None),
-        Some((Read::NeedsNewerHub(e), _)) => (None, Some(e)),
-        None => (None, None),
-    };
-    Inner { catalog, newer_hub_needed: newer, settings: s, policy, offline: false, checking: false, check_error: None, jobs: HashMap::new(), problems: HashMap::new(), tray: false, window_open: false }
-}
-
-/// Leftover downloads from an install that was interrupted (or the hub's own installer after a
-/// self-update) are removed at start.
-fn clean_downloads() {
-    let dir = BRAND.data_dir().join("downloads");
-    if let Ok(rd) = std::fs::read_dir(&dir) {
-        for e in rd.flatten() {
-            let _ = std::fs::remove_file(e.path());
-        }
-    }
-}
-
-/// Fetch the catalog and its signature, in the background. Does nothing while a check is
-/// already running or when policy turned checks off.
-pub fn check(app: &AppHandle) {
-    {
-        let h = hub(app);
-        let mut g = h.lock();
-        if g.checking || g.policy.no_update_checks {
-            return;
-        }
-        g.checking = true;
-    }
-    changed(app);
-    let app = app.clone();
-    std::thread::spawn(move || {
-        let fetch = || net::fetch_small(&BRAND.catalog_url, 4 * 1024 * 1024).and_then(|data| net::fetch_small(&BRAND.signature_url(), 16 * 1024).map(|sig| (data, sig)));
-        let mut result = fetch();
-        // The two files are uploaded one after the other; fetched in between, they do not match.
-        // One more try a few seconds later settles that.
-        if let Ok((data, sig)) = &result {
-            if catalog::verify(data, &String::from_utf8_lossy(sig)).is_err() {
-                std::thread::sleep(std::time::Duration::from_secs(4));
-                result = fetch();
-            }
-        }
-        {
-            let h = hub(&app);
-            let mut g = h.lock();
-            g.checking = false;
-            match result {
-                Ok((data, sig)) => {
-                    g.offline = false;
-                    let sig = String::from_utf8_lossy(&sig).to_string();
-                    match catalog::read(&data, &sig) {
-                        Ok(r) => {
-                            g.check_error = None;
-                            g.settings.last_check = Some(util::now_secs());
-                            let current = g.catalog.as_ref().map(|c| c.generated.clone()).unwrap_or_default();
-                            match r {
-                                // An older catalog than the one in hand (a replayed file) is ignored.
-                                Read::Usable(c) if c.generated.as_str() >= current.as_str() => {
-                                    let _ = catalog::store(&data, &sig);
-                                    g.catalog = Some(c);
-                                    g.newer_hub_needed = None;
-                                }
-                                Read::Usable(_) => {}
-                                // Kept in memory only, so the cached catalog this hub can read stays on disk.
-                                Read::NeedsNewerHub(e) => g.newer_hub_needed = Some(e),
-                            }
-                            settings::save(&g.settings);
-                        }
-                        Err(e) => g.check_error = Some(format!("The catalog from GitHub was ignored because {e}.")),
-                    }
-                }
-                Err(net::NetError::Offline(_)) => g.offline = true,
-                Err(e) => {
-                    g.offline = false;
-                    g.check_error = Some(format!("The app list could not be downloaded ({e})."));
-                }
-            }
-        }
-        tray::notify_new_versions(&app);
-        changed(&app);
-    });
-}
-
-/// Open an installed app (from the tray menu).
-pub(crate) fn commands_open(app: &AppHandle, id: &str) -> Result<(), String> {
-    commands::open_app(app.clone(), id.to_string())
-}
-
-pub fn show_window(app: &AppHandle, page: Option<&str>) {
-    if let Some(w) = app.get_webview_window("main") {
-        let _ = w.unminimize();
-        let _ = w.show();
-        let _ = w.set_focus();
-        if let Some(p) = page {
-            let _ = w.emit("hub://page", p);
-        }
+/// Shows the hub's window, making it when it is not there (in the tray the window is fully closed, not hidden, to keep memory low).
+pub fn show_window(app: &tauri::AppHandle) {
+    if let Some(window) = app.get_webview_window(WINDOW) {
+        let _ = window.unminimize();
+        let _ = window.show();
+        let _ = window.set_focus();
         return;
     }
-    let url = match page {
-        Some(p) => format!("index.html#{p}"),
-        None => "index.html".into(),
-    };
-    let built = WebviewWindowBuilder::new(app, "main", WebviewUrl::App(url.into()))
-        .title(&BRAND.product_name)
+    let built = WebviewWindowBuilder::new(app, WINDOW, WebviewUrl::App("index.html".into()))
+        .title(&brand::brand().product_name)
         .inner_size(470.0, 720.0)
-        .min_inner_size(360.0, 460.0)
-        .resizable(true)
+        .min_inner_size(360.0, 420.0)
+        // Ctrl and plus or minus (or Ctrl and the mouse wheel) make everything larger or smaller, to 200 percent and beyond.
+        .zoom_hotkeys_enabled(true)
+        // The web view's options: Tauri's own three (no pop-up windows of the web view's, no PDF viewer, no SmartScreen lookups), plus no
+        // separate graphics process (a list of apps draws well without one, and it saves memory) and none of the web view's own background
+        // network requests.
+        .additional_browser_args(
+            "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-gpu --disable-background-networking --no-first-run",
+        )
         .visible(true)
         .build();
-    if built.is_ok() {
-        hub(app).lock().window_open = true;
-        check(app);
+    if let Ok(window) = built {
+        let _ = window.set_focus();
     }
 }
 
 pub fn run() {
-    let tray_start = std::env::args().any(|a| a == "--tray");
-    clean_downloads();
-    tauri::Builder::default()
-        .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| show_window(app, None)))
+    let in_tray = std::env::args().any(|a| a == "--tray");
+    // A development copy can print what the window would show (after fetching the catalog) and stop: <program> --print-view
+    #[cfg(debug_assertions)]
+    if std::env::args().any(|a| a == "--print-view") {
+        let hub = Hub::new(false);
+        hub.refresh();
+        println!("{}", serde_json::to_string_pretty(&hub.view()).unwrap_or_default());
+        return;
+    }
+    // A development copy can run the six install steps for one app, printing each stage: <program> --install <app id>
+    #[cfg(debug_assertions)]
+    if let Some(id) = std::env::args().skip_while(|a| a != "--install").nth(1) {
+        let hub = Hub::new(false);
+        hub.refresh();
+        let Some(app) = hub.app(&id) else { return println!("{id} is not in the catalog.") };
+        let Some(release) = hub.offer_for(&app) else { return println!("No release of {id} is offered.") };
+        println!("Installing {} {}", app.name, release.version);
+        let report = |e: jobs::JobEvent| {
+            if e.stage != "downloading" || e.received == 0 || e.received == e.total {
+                println!("  {}: {} {}", e.stage, e.message, if e.total > 0 { format!("({} of {} bytes)", e.received, e.total) } else { String::new() });
+            }
+        };
+        match jobs::install(&hub, &app, &release, &std::sync::atomic::AtomicBool::new(false), &report) {
+            Ok(()) => println!("Done: {}", serde_json::to_string(&hub.view().apps.iter().find(|a| a.id == id)).unwrap_or_default()),
+            Err(why) => println!("Failed: {why}"),
+        }
+        return;
+    }
+    let hub = Arc::new(Hub::new(in_tray));
+
+    let app = tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| show_window(app)))
         .plugin(tauri_plugin_notification::init())
-        .manage(Hub(Mutex::new(load())))
+        .manage(hub.clone())
         .invoke_handler(tauri::generate_handler![
             commands::get_view,
-            commands::check_now,
-            commands::install,
-            commands::reinstall,
-            commands::cancel,
+            commands::refresh,
+            commands::start_job,
+            commands::download_extra,
+            commands::cancel_job,
+            commands::uninstall,
             commands::open_app,
             commands::open_folder,
-            commands::whats_new,
-            commands::uninstall,
-            commands::download_extra,
+            commands::open_release_page,
             commands::open_web,
             commands::open_link,
             commands::set_setting,
-            commands::first_run_answer,
+            commands::answer_first_run,
             commands::update_hub,
-            commands::dismiss_problem,
-            commands::quit,
+            commands::take_pending_settings,
+            commands::quit_hub,
         ])
         .setup(move |app| {
             let handle = app.handle().clone();
-            let keep = hub(&handle).lock().settings.keep_in_tray;
-            if tray_start || keep {
+            let settings = hub.settings();
+            if in_tray || settings.keep_in_tray {
                 tray::create(&handle);
             }
-            if !tray_start {
-                show_window(&handle, None);
+            if !in_tray {
+                show_window(&handle);
             }
+            tray::start_daily_check(handle);
             Ok(())
         })
         .build(tauri::generate_context!())
-        .expect("the hub could not start")
-        .run(|app, event| match event {
-            // The window closing ends the hub unless the tray is on (the window is fully closed
-            // either way, so the tray-only hub stays small).
-            RunEvent::ExitRequested { api, code: None, .. } => {
-                if hub(app).lock().tray {
-                    api.prevent_exit();
-                }
+        .expect("the hub could not start");
+
+    app.run(|handle, event| {
+        // Closing the window quits the hub, unless the tray is on: then the window is closed and the hub stays in the tray.
+        if let RunEvent::ExitRequested { code: None, api, .. } = event {
+            if tray::exists(handle) {
+                api.prevent_exit();
             }
-            RunEvent::WindowEvent { label, event: tauri::WindowEvent::Destroyed, .. } if label == "main" => {
-                hub(app).lock().window_open = false;
-            }
-            _ => {}
-        });
+        }
+    });
 }

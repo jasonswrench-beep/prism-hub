@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hub</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <header class="top">
+      <img class="logo" src="/mark.svg" alt="" width="32" height="32" />
+      <h1 id="product-name">Hub</h1>
+      <div class="menu-wrap">
+        <button type="button" id="menu-button" class="icon-button" aria-haspopup="menu" aria-expanded="false" aria-controls="main-menu" aria-label="Settings and help">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L14.9 3h-4l-.4 2.9a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.4 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1l.4 2.9h4l.4-2.9a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM12.9 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>
+        </button>
+        <ul id="main-menu" class="menu" role="menu" aria-labelledby="menu-button" hidden>
+          <li role="none"><button type="button" role="menuitem" data-action="check">Check for updates</button></li>
+          <li role="none"><button type="button" role="menuitem" data-action="settings">Settings</button></li>
+          <li role="none"><button type="button" role="menuitem" data-action="about">About</button></li>
+          <li role="none"><button type="button" role="menuitem" data-action="quit">Quit</button></li>
+        </ul>
+      </div>
+    </header>
+
+    <div id="banner" class="banner" hidden></div>
+
+    <main id="content">
+      <section aria-labelledby="desktop-heading">
+        <h2 id="desktop-heading">Desktop</h2>
+        <ul id="desktop" class="rows"></ul>
+        <p id="desktop-empty" class="empty" hidden></p>
+      </section>
+      <section id="web-section" aria-labelledby="web-heading" hidden>
+        <h2 id="web-heading">Web</h2>
+        <ul id="web" class="rows"></ul>
+      </section>
+      <section id="soon-section" aria-labelledby="soon-heading" hidden>
+        <h2 id="soon-heading">Coming soon</h2>
+        <ul id="soon" class="rows"></ul>
+      </section>
+    </main>
+
+    <footer class="bottom">
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+      <button type="button" id="sibling" class="link-button"></button>
+    </footer>
+
+    <div id="announce" class="visually-hidden" aria-live="polite"></div>
+    <div id="alert" class="visually-hidden" role="alert"></div>
+
+    <dialog id="settings-dialog" aria-labelledby="settings-title">
+      <form method="dialog">
+        <h2 id="settings-title">Settings</h2>
+        <div class="setting">
+          <input type="checkbox" id="set-offerPreviews" data-setting="offerPreviews" aria-describedby="set-offerPreviews-help" />
+          <label for="set-offerPreviews">Offer preview versions</label>
+          <p id="set-offerPreviews-help" class="help">Previews are early versions and may change. Most of the apps have only previews today, so with this off the hub still offers those, marked Preview.</p>
+        </div>
+        <div class="setting">
+          <input type="checkbox" id="set-startWithWindows" data-setting="startWithWindows" aria-describedby="set-startWithWindows-help" />
+          <label for="set-startWithWindows">Start with Windows</label>
+          <p id="set-startWithWindows-help" class="help">Starts the hub in the tray when you sign in, with no window.</p>
+        </div>
+        <div class="setting">
+          <input type="checkbox" id="set-keepInTray" data-setting="keepInTray" aria-describedby="set-keepInTray-help" />
+          <label for="set-keepInTray">Keep running in the tray when I close the window</label>
+          <p id="set-keepInTray-help" class="help">Otherwise closing the window quits the hub.</p>
+        </div>
+        <div class="setting">
+          <input type="checkbox" id="set-dailyCheck" data-setting="dailyCheck" aria-describedby="set-dailyCheck-help" />
+          <label for="set-dailyCheck">Check once a day while in the tray</label>
+          <p id="set-dailyCheck-help" class="help">Fetches the list of apps once a day. Nothing is downloaded or installed without your click.</p>
+        </div>
+        <p id="policy-note" class="help" hidden></p>
+        <div class="dialog-buttons">
+          <button type="button" id="settings-about" class="secondary">About</button>
+          <button value="close" class="primary">Close</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="about-dialog" aria-labelledby="about-title">
+      <form method="dialog">
+        <h2 id="about-title">About</h2>
+        <dl class="facts">
+          <dt>Version</dt><dd id="about-version"></dd>
+          <dt>Licence</dt><dd>Apache License 2.0</dd>
+          <dt>Catalog</dt><dd id="about-catalog"></dd>
+        </dl>
+        <p class="help">The hub sends nothing about you or this computer. A check fetches one signed file from GitHub; installers come from each app's own GitHub releases and are checked before they run.</p>
+        <div class="dialog-buttons">
+          <button type="button" id="about-repository" class="secondary">The hub on GitHub</button>
+          <button value="close" class="primary">Close</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-text">
+      <form method="dialog">
+        <h2 id="confirm-title"></h2>
+        <p id="confirm-text"></p>
+        <div class="dialog-buttons">
+          <button value="no" class="secondary" id="confirm-no">Keep it</button>
+          <button value="yes" class="primary" id="confirm-yes"></button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="first-run-dialog" aria-labelledby="first-run-title" aria-describedby="first-run-text">
+      <form method="dialog">
+        <h2 id="first-run-title">Start the hub when you sign in?</h2>
+        <p id="first-run-text">The hub can wait in the tray and check for new versions once a day. It is off unless you turn it on, and you can change it later in Settings.</p>
+        <div class="dialog-buttons">
+          <button value="no" class="primary">Not now</button>
+          <button value="yes" class="secondary">Start with Windows</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

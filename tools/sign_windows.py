@@ -4,25 +4,26 @@
 
   python tools/sign_windows.py FILE...              sign each file that is not signed yet, then check it
   python tools/sign_windows.py --description TEXT FILE...   the same, with the program name written into the signature
-  python tools/sign_windows.py --leave-list LIST FILE...   the same, but a file named in LIST (one place per line) is left unsigned on purpose
+  python tools/sign_windows.py --leave-list LIST FILE...   the same, but a file named in LIST (one place per line, such as
+                                                    python/Lib/site-packages/pip/_vendor/distlib/t64.exe) is left unsigned on purpose
   python tools/sign_windows.py --check FILE...      only check: each file must carry a valid signature and a timestamp
   python tools/sign_windows.py --ready              say whether everything signing needs is here, and sign nothing
 
-tools/build-release.ps1 -Sign uses it through Tauri's bundle.windows.signCommand, one file at a time: the program, the installer's
-plugins, the uninstaller and the setup file.
+The same file is used by each OpenStage tool's installer build: for the programs it packs, and, one file at a time through Tauri's
+bundle.windows.signCommand or Inno Setup's SignTool, for the program itself, the installer's plugins, the uninstaller and the setup file.
+In OpenStage Author, tools/build_installer.py --sign does all of that; in OpenExplainer, tools/build-installer.mjs --sign.
 
 Why the timestamp is not optional: an Artifact Signing certificate is valid for three days. A signature without a timestamp stops validating when its
 certificate runs out, so a file is only counted as signed here when its signature is valid AND timestamped.
 
-The account details come from environment variables, so they never go into the repository (the names are shared with the owner's other programs):
+The account details come from environment variables, so they never go into the repository:
   OPENSTAGE_SIGN_ENDPOINT   the account's regional address, for example https://eus.codesigning.azure.net/
   OPENSTAGE_SIGN_ACCOUNT    the Artifact Signing account's name
   OPENSTAGE_SIGN_PROFILE    the certificate profile's name (a Public Trust profile)
   OPENSTAGE_SIGN_PUBLISHER  optional: the name the signature must show (the verified identity); a file signed by anyone else fails the check
   OPENSTAGE_SIGN_DLIB       optional: Microsoft's Azure.CodeSigning.Dlib.dll (x64), from the NuGet package Microsoft.ArtifactSigning.Client;
-                            by default <your folder>\Tools\artifact-signing\bin\x64\Azure.CodeSigning.Dlib.dll
+                            by default <your folder>\\Tools\\artifact-signing\\bin\\x64\\Azure.CodeSigning.Dlib.dll
   OPENSTAGE_SIGNTOOL        optional: signtool.exe (x64); by default the newest one in the Windows SDK, 10.0.22621 or later
-  OPENSTAGE_SIGN_METADATA   optional: where to write the signing library's settings file (default target/signing/metadata.json)
   OPENSTAGE_SIGN_DRY_RUN=1  print the commands instead of running them, and check nothing (for tests)
 
 Signing in: Microsoft's signing library finds the sign-in itself (Azure's DefaultAzureCredential). On a person's own computer that is `az login`,
@@ -38,8 +39,8 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-# Kept in the build folder: dist/ holds only the files that are handed out.
-METADATA = Path(os.environ["OPENSTAGE_SIGN_METADATA"]) if os.environ.get("OPENSTAGE_SIGN_METADATA") else ROOT / "target" / "signing" / "metadata.json"
+# dist/ is not in the repository. A tool whose dist/ is its own build output (OpenExplainer) names another place in OPENSTAGE_SIGN_METADATA.
+METADATA = Path(os.environ["OPENSTAGE_SIGN_METADATA"]) if os.environ.get("OPENSTAGE_SIGN_METADATA") else ROOT / "dist" / "signing" / "metadata.json"
 TIMESTAMP_URL = "http://timestamp.acs.microsoft.com"  # Microsoft's RFC 3161 timestamp service for Artifact Signing
 SDK_BIN = Path(r"C:\Program Files (x86)\Windows Kits\10\bin")
 LOWEST_SDK = (10, 0, 22621)  # Microsoft asks for SignTool 10.0.22621.755 or later with its signing library

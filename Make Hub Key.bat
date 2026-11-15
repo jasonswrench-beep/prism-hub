@@ -1,11 +1,13 @@
 @echo off
-rem Makes the hub's own signing key, once. It signs the catalog and nothing else, and is
-rem separate from PrismQDA's and Prism Reference Manager's update keys.
-rem
-rem You choose the password. Keep the key file and its password off GitHub and backed up:
-rem without them no new catalog can be published, and every hub keeps the last one it has.
+title Prism Hub: make the hub key
+chcp 65001 >nul
 cd /d "%~dp0"
-if not exist node_modules (call npm install --no-audit --no-fund)
-node "%~dp0tools\make-hub-key.mjs"
+echo This makes the hub key, which signs the catalog. Run it once, before the first hub release.
+echo You choose its password. The private half is saved in "Prism Hub key" in your user folder (never in this
+echo repository, never on GitHub); keep a backup of that folder. The public half goes into brand\brand.json.
+echo.
+where node >nul 2>nul || (echo Node.js is not installed. Get it from nodejs.org, then run this again. & goto :end)
+node tools\make-hub-key.mjs
+:end
 echo.
 pause

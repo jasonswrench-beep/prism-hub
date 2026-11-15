@@ -1,0 +1,55 @@
+{
+  "_about": "The fixed facts about each app that GitHub cannot tell the catalog script: its mark, how Windows lists it, its program file and its installer's quiet switch. Update Prism Catalog.bat adds each app's newest stable and preview release (address, SHA-256, size) and writes the signed catalog. docs/catalog.md explains every field.",
+  "minimumHubVersion": "1.0.0",
+  "hub": {
+    "repository": "jasonswrench-beep/prism-hub",
+    "setupPattern": "^Prism-Hub-.*-Setup\\.exe$"
+  },
+  "apps": [
+    {
+      "id": "prismqda",
+      "name": "PrismQDA",
+      "mark": { "letters": "qd", "color": "#5B45E0" },
+      "description": "Qualitative and mixed-methods analysis",
+      "repository": "jasonswrench-beep/prismqda",
+      "installedAs": "PrismQDA",
+      "programFile": "prismqda-app.exe",
+      "quietSwitch": ["/P"],
+      "expectedSigner": "Jason Wrench",
+      "setupPattern": "^PrismQDA_.*_x64-setup\\.exe$",
+      "extras": [
+        { "name": "Portable copy", "description": "Runs without installing", "pattern": "^PrismQDA_.*_portable\\.zip$" }
+      ]
+    },
+    {
+      "id": "prismstatistics",
+      "name": "PrismStatistics",
+      "mark": { "letters": "st", "color": "#2F64D6" },
+      "description": "Statistics for research and teaching",
+      "repository": "jasonswrench-beep/prism_statistics",
+      "installedAs": "PrismStatistics",
+      "programFile": "prismstatistics-app.exe",
+      "quietSwitch": ["/P"],
+      "expectedSigner": "Jason Wrench",
+      "setupPattern": "^PrismStatistics_.*_x64-setup\\.exe$"
+    },
+    {
+      "id": "prism-reference-manager",
+      "name": "Prism Reference Manager",
+      "mark": { "letters": "rm", "color": "#4B5FA8" },
+      "description": "Collect, read and cite sources",
+      "repository": "jasonswrench-beep/prism_reference_manager",
+      "installedAs": "Prism Reference Manager",
+      "programFile": "prism-reference-manager.exe",
+      "quietSwitch": ["/P"],
+      "expectedSigner": "Jason Wrench",
+      "setupPattern": "^Prism-Reference-Manager-.*-setup\\.exe$",
+      "extras": [
+        { "name": "Portable copy", "description": "Runs without installing", "pattern": "^Prism-Reference-Manager-.*-portable\\.zip$" },
+        { "name": "Browser add-on", "description": "Saves pages and PDFs from your browser into the library", "pattern": "^Prism-Reference-Manager-.*-browser-capture\\.zip$" }
+      ]
+    }
+  ],
+  "web": [],
+  "comingSoon": []
+}
