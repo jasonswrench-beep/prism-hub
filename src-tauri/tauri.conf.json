@@ -1,0 +1,56 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Prism Hub",
+  "mainBinaryName": "prism-hub",
+  "identifier": "org.prismopenresearch.hub",
+  "build": {
+    "frontendDist": "../ui",
+    "beforeDevCommand": "npm run ui",
+    "beforeBuildCommand": "npm run ui"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [],
+    "security": {
+      "csp": "default-src 'self' ipc: http://ipc.localhost; base-uri 'none'; object-src 'none'; form-action 'none'; frame-ancestors 'none'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src ipc: http://ipc.localhost; font-src 'self'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "nsis"
+    ],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.ico"
+    ],
+    "publisher": "PrismOpenResearch",
+    "copyright": "Copyright 2026 Jason S. Wrench. Licensed under the Apache License 2.0.",
+    "category": "Utility",
+    "shortDescription": "Install, update and open the PrismOpenResearch apps.",
+    "longDescription": "Prism Hub lists every app in the PrismOpenResearch suite and installs, updates and opens each one from its signed GitHub release. It needs no account and never installs a file that fails its checksum and signature check.",
+    "resources": {
+      "../LICENSE": "LICENSE.txt",
+      "../NOTICE": "NOTICE.txt",
+      "../THIRD-PARTY.md": "THIRD-PARTY.md"
+    },
+    "windows": {
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper",
+        "silent": true
+      },
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": [
+          "English"
+        ],
+        "displayLanguageSelector": false,
+        "installerIcon": "icons/icon.ico",
+        "startMenuFolder": "PrismOpenResearch",
+        "installerHooks": "./installer-hooks.nsh"
+      }
+    }
+  }
+}

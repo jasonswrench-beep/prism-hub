@@ -1,0 +1,10 @@
+/node_modules
+/src-tauri/target
+/src-tauri/gen
+/ui/js
+/dist
+/target
+*.tmp
+__pycache__/
+# Signing keys never go in the repository.
+*.key

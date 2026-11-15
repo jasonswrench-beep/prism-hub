@@ -1,0 +1,31 @@
+{
+  "format": 1,
+  "generated": "2026-11-15T12:00:00Z",
+  "minimum_hub_version": "1.0.0",
+  "hub": null,
+  "apps": [
+    {
+      "id": "sample-app",
+      "name": "Sample App",
+      "mark": { "letters": "sa", "color": "#4B5FA8" },
+      "section": "desktop",
+      "description": "A test entry",
+      "repository": "owner/sample",
+      "installed_as": "Sample App",
+      "program_file": "sample.exe",
+      "quiet_switch": "/P",
+      "uninstall_switch": "/P",
+      "expected_signer": "Jason Wrench",
+      "stable": null,
+      "preview": {
+        "version": "0.1.0-beta.1",
+        "url": "https://github.com/owner/sample/releases/download/v0.1.0-beta.1/sample-setup.exe",
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000001",
+        "size": 1000,
+        "release_page": "https://github.com/owner/sample/releases/tag/v0.1.0-beta.1"
+      },
+      "extras": []
+    }
+  ],
+  "web": []
+}

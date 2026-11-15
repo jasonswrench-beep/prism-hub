@@ -1,0 +1,22 @@
+{
+  "product_name": "Prism Hub",
+  "binary_name": "prism-hub",
+  "identifier": "org.prismopenresearch.hub",
+  "suite_name": "PrismOpenResearch",
+  "publisher": "PrismOpenResearch",
+  "start_menu_folder": "PrismOpenResearch",
+  "short_description": "Install, update and open the PrismOpenResearch apps.",
+  "long_description": "Prism Hub lists every app in the PrismOpenResearch suite and installs, updates and opens each one from its signed GitHub release. It needs no account and never installs a file that fails its checksum and signature check.",
+  "copyright": "Copyright 2026 Jason S. Wrench. Licensed under the Apache License 2.0.",
+  "icon": "icon.svg",
+  "accent": "#151a3d",
+  "accent_dark": "#aab4ff",
+  "expected_signer": "Jason Wrench",
+  "repository": "jasonswrench-beep/prism-hub",
+  "catalog_url": "https://github.com/jasonswrench-beep/prism-hub/releases/download/catalog/prism-catalog.json",
+  "catalog_file": "prism-catalog.json",
+  "catalog_public_key": "",
+  "policy_name": "Prism Hub",
+  "sibling_label": "Also from Jason Wrench: OpenStage Hub",
+  "sibling_url": "https://github.com/jasonswrench-beep/openstage-hub/releases/latest"
+}
