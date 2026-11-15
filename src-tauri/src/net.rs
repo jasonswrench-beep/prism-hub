@@ -39,6 +39,11 @@ impl NetError {
     pub fn words(&self, what: &str) -> String {
         match self {
             NetError::Offline => "GitHub could not be reached. Check the internet connection and try again.".into(),
+            // The catalog's own address is built into the hub, so a 404 there means it is not published yet, or the hub's repository
+            // is private (GitHub answers 404 to anyone not signed in).
+            NetError::Status(404) if what == "catalog" => {
+                "GitHub does not have the list of apps yet (404). Its repository may still be private, or the list not published.".into()
+            }
             NetError::Status(404) => format!("GitHub does not have the {what} at the address in the catalog (404)."),
             NetError::Status(code) => format!("GitHub answered with an error ({code}) for the {what}. Try again later."),
             NetError::Refused(host) => format!("The {what} would have come from {host}, which is not GitHub, so nothing was downloaded."),

@@ -19,7 +19,7 @@
     "file": "prism-catalog.json",
     "signature": "prism-catalog.json.sig"
   },
-  "catalogPublicKey": "",
+  "catalogPublicKey": "D8nRvNbgChVmGlrpyd6lJiD15pM3aNYedSRlHE3Z2aM=",
   "expectedSigner": "Jason Wrench",
   "sibling": {
     "label": "Also from Jason Wrench: OpenStage Hub",
