@@ -4,8 +4,13 @@ Things Prism Hub needs from `openstage-core` that the core does not offer yet. P
 shared piece when the core could offer it. Newest last. Core as read: `CORE-NOTES.md` of 2026-11-16 (commit c7e3ae1), which
 has no section for the hubs.
 
-**Status, 2026-11-16:** Prism Hub 1.0.1 and OpenStage Hub 1.0.1 are two copies of one program, each with its own brand file.
-Until H1 is done, a change to how the hub behaves is still made in both copies.
+**Status, 2026-11-16 (later the same day): H1 is settled without the core, and withdrawn.** Jason chose to keep the one hub
+codebase in `jasonswrench-beep/openstage-hub`, with both brands in its `brands/` folder, and to keep the icons inside the signed
+catalog (H1's point 3, as Prism Hub asked). It was built there in OpenStage Hub's session (version 1.0.2, not yet released). This
+repository now holds only Prism Hub's releases and a README pointing there. The core has nothing to do for H1. H1's point 4 is
+done there too: the catalog script now prints a note when GitHub's pre-release mark and a release's version disagree.
+
+The request as it was made, for the record:
 
 ## H1. One hub codebase with two brand files
 

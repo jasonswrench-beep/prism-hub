@@ -3,13 +3,8 @@ Copyright 2026 Jason S. Wrench
 
 Licensed under the Apache License, Version 2.0 (LICENSE).
 
-This program is OpenStage Hub's code with Prism's brand file, app list and documents; both are by the same author.
-
-Code adapted from the author's OpenStage projects, also Apache 2.0:
-- The version ordering (alpha, beta, rc, final) and the WinHTTP request code follow OpenExplainer's src-tauri/src/updates.rs.
-- tools/sign_windows.py is the suite's shared signing script, copied from OpenExplainer.
-- tools/make-icons.mjs draws the icon in headless Microsoft Edge the same way as OpenStage Author's tools/svg_to_png.mjs.
-- The PrismOpenResearch icon (brand/PrismOpenResearch.svg) was supplied by Jason S. Wrench on 2026-11-15.
+Prism Hub is built from the code in github.com/jasonswrench-beep/openstage-hub, whose NOTICE lists what it adapts and
+builds in. This repository's history holds the code up to 1.0.1, which built in the components below.
 
 Third-party components built into the program (all permissive licences):
 - Tauri and its plugins single-instance and notification (MIT or Apache 2.0)

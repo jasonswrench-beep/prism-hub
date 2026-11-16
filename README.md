@@ -1,4 +1,4 @@
-<p align="center"><img src="brand/PrismOpenResearch.svg" width="96" alt="The PrismOpenResearch icon: a rainbow prism with an open centre and a separated gold corner"></p>
+<p align="center"><img src="https://github.com/jasonswrench-beep/openstage-hub/raw/main/brands/prism/PrismOpenResearch.svg" width="96" alt="The PrismOpenResearch icon: a rainbow prism with an open centre and a separated gold corner"></p>
 
 # Prism Hub
 
@@ -21,19 +21,8 @@ Offline, the hub still lists every app from the last catalog it fetched, and Ope
 
 Settings: Offer preview versions, Start with Windows, Keep running in the tray, Check once a day while in the tray, and About.
 
-## For college IT staff
+## Where the code is
 
-A `policy.json` file beside `prism-hub.exe` can turn off update checks, turn off Start with Windows, hide apps or turn off previews. See [docs/policy.md](docs/policy.md).
+Prism Hub is built from the same code as OpenStage Hub, in [jasonswrench-beep/openstage-hub](https://github.com/jasonswrench-beep/openstage-hub). Everything that makes it Prism Hub (its name, icon, key, list of apps and their icons) is in that repository's `brands/prism` folder, and `Build Prism Hub.bat`, `Run Prism Hub.bat` and `Update Prism Catalog.bat` are there too. The documents (how it works, the catalog, the IT policy file, releasing) and the list of checks only a person can do are there as well.
 
-## How it works
-
-- [docs/how-it-works.md](docs/how-it-works.md): the catalog, the six install steps, what is kept on disk, and what is sent over the network.
-- [docs/catalog.md](docs/catalog.md): the catalog's format and how to update it (`Update Prism Catalog.bat`).
-- [docs/releasing.md](docs/releasing.md): making the hub key, building and signing the hub, and publishing a release.
-- [TESTING-TODO.md](TESTING-TODO.md): the checks only a person can do.
-
-## Building
-
-Double-click `Run Prism Hub.bat` to run a development copy, or `Build Prism Hub.bat` to make an installer. Both need Node.js and Rust.
-
-Every brand-specific value (name, identifier, Start menu folder, icon, accent colours, catalog address, the catalog's public key) is in [brand/brand.json](brand/brand.json), so Prism Hub can share this code with its own brand file.
+This repository holds Prism Hub's releases: each version's signed setup, and the release named `catalog` with the signed list of apps that installed hubs read. Both have to stay here, at the addresses built into every installed Prism Hub. The code up to 1.0.1 is in this repository's history.
