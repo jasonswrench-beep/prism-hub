@@ -22,7 +22,8 @@ Checked by Claude on 2026-11-16:
 
 Done by 2026-11-15: the hub key made (its public half is in `brand/brand.json`), the repository public, the catalog published, Prism Hub 1.0.0 and 1.0.1 released and signed, and you confirmed the hub works and updated an app with it. The OpenStage Hub link in the footer now opens (that repository is public). Still to do:
 
-- [ ] Run **Update Prism Catalog.bat** and enter the hub key's password. Until you do, the hub keeps offering PrismQDA beta 1, PrismStatistics 0.1.0 and Prism Reference Manager 0.1.2. Afterwards, Check for updates in the hub should offer the three new versions.
+- [x] 2026-11-16: **Update Prism Catalog.bat** run. Claude downloaded the published catalog (generated 2026-11-16 21:44 UTC): its signature checks against the key in `brand/brand.json`, and it offers PrismQDA 0.1.0 beta 2 (preview), PrismStatistics 0.2.2, Prism Reference Manager 0.1.3 and the hub 1.0.1, each with its icon.
+- [ ] In the installed hub, Check for updates offers those three versions for the apps you have installed.
 - [ ] Each app's quiet install switch, below under "Installing, updating, removing".
 - [ ] Web links: none yet. Add the Prism website, documentation or roadmap addresses to `web` in `catalog/apps.json` when there are any.
 - [ ] PrismStatistics's release titles say "teaching preview", but GitHub lists them as full releases and their versions (0.2.1) have no `-beta` part, so the hub shows them with no Preview tag. Say if they should be shown as previews (the app would then need versions such as `0.2.1-preview.1`).
