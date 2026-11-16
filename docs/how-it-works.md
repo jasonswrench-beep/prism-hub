@@ -74,5 +74,6 @@ A development build (not a release build) also reads:
 - `HUB_CATALOG_DIR`: a folder holding a catalog and its signature, used instead of GitHub.
 - `HUB_TEST_KEY`: a test key's public half, used instead of the built-in one.
 - `--print-view`: prints what the window would show, after fetching the catalog, and stops.
+- `--install <app id>`: runs the six install steps for one app, printing each stage, and stops.
 
 `tests/ui-preview.html` (with `npm run dev`, at `http://localhost:1430/tests/ui-preview.html`) runs the real window code against a stand-in for the Rust side, for looking at every row state and testing by keyboard and screen reader.

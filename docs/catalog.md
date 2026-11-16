@@ -81,3 +81,5 @@ A new field can be added without breaking older hubs (they ignore what they do n
 ## Stable and preview
 
 With **Offer preview versions** on (the default while the suite is in preview), the hub offers the newer of an app's stable and preview releases. With it off, it offers the stable release, or the preview marked Preview when there is no stable one. Turning previews off never pushes anyone backward: they keep their version until a stable one passes it. A policy file can turn previews off entirely (see [policy.md](policy.md)).
+
+A release is a preview when its version has a pre-release part (`0.1.0-beta.2`), and stable when it has none (`0.2.1`). GitHub's pre-release mark is not read, so an app that wants a release shown as a preview gives it a version with a pre-release part. Prism Reference Manager is a full release from 0.1.2 on (its release notes say so), so it shows no Preview tag.

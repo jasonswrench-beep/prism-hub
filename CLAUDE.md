@@ -17,7 +17,7 @@ Read `docs/how-it-works.md` first.
 
 Every brand-specific value lives in `brand/brand.json` (and the icon it names). Never write the product name, identifier, colours, repository or key anywhere else in code. The icon is the PrismOpenResearch icon, `brand/PrismOpenResearch.svg`, not one of the apps' own icons.
 
-This code is OpenStage Hub's, with Prism's brand file, app list and documents. Keep the two working the same: a change to how the hub behaves belongs in both (or, later, in one shared codebase with two brand files).
+This code is OpenStage Hub's, with Prism's brand file, app list and documents. Keep the two working the same: a change to how the hub behaves belongs in both (or, later, in one shared codebase with two brand files). That shared codebase is asked of `openstage-core` in `CORE-REQUESTS.md` (H1); do not build it here.
 
 ### Accessibility
 
