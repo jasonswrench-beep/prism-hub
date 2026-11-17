@@ -4,3 +4,9 @@ This repository holds only Prism Hub's releases (each version's signed setup, an
 
 - No em dashes in prose written for this project.
 - Repository text names no commercial products and makes no comparisons with products on the market.
+
+## Commits and releases (standing rules, Jason, 2026-11-17)
+
+- Commit as `jasonswrench-beep <324576087+jasonswrench-beep@users.noreply.github.com>`. This repository's own git config sets it; check `git config --local user.name` and `git config --local user.email` before every commit.
+- No `Co-Authored-By` lines and no "Generated with Claude Code" lines in any commit message, tag or release, ever.
+- Commit everything and tag that commit before building any installer, so each release tag points at the exact commit the build came from.
